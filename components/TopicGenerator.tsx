@@ -21,10 +21,10 @@ const TopicGenerator: React.FC = () => {
       return;
     }
 
-    // Fix: Access API key from process.env.API_KEY as per @google/genai coding guidelines.
+    // Fix: Adhering to @google/genai coding guidelines, API key must be obtained exclusively from process.env.API_KEY.
     const apiKey = process.env.API_KEY; 
     if (!apiKey) {
-      setError('کلید API در متغیرهای محیطی تعریف نشده است. لطفاً آن را با نام API_KEY در فایل .env یا تنظیمات محیطی سرور خود تنظیم کنید.');
+      setError('کلید API (API_KEY) در متغیرهای محیطی تعریف نشده است. لطفاً آن را با نام API_KEY در فایل .env خود تنظیم کنید.');
       return;
     }
     const ai = new GoogleGenAI({ apiKey });
