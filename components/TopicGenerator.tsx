@@ -21,13 +21,15 @@ const TopicGenerator: React.FC = () => {
     }
 
     // Access environment variables via process.env as defined in vite.config.ts
+    // In Vercel, this value is injected at build time.
     const apiKey = process.env.API_KEY;
 
-    if (!apiKey) {
-      setError('کلید API (که باید در .env به صورت VITE_API_KEY تعریف شود) در دسترس نیست. لطفاً فایل .env خود را بررسی و سرور را ریستارت کنید.');
+    if (!apiKey || apiKey === 'undefined') { // Check for explicit 'undefined' string which can happen if VITE_API_KEY is not set
+      setError(
+        'کلید API (که باید به صورت VITE_API_KEY در .env یا در متغیرهای محیطی Vercel تعریف شود) در دسترس نیست. لطفاً فایل .env خود (در توسعه محلی) و متغیرهای محیطی Vercel (در دیپلوی) را بررسی کرده و سرور را ریستارت کنید.'
+      );
       return;
     }
-    // AVALAI_PROXY_URL check is removed as we are now directly using Google Gemini API
 
     setLoading(true);
     setError(null);

@@ -2,19 +2,27 @@ import { GoogleGenAI } from "@google/genai";
 import { SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE } from "../constants";
 import { AcademicLevel } from "../types";
 
-// Access environment variables via process.env as defined in vite.config.ts
-const API_KEY = process.env.API_KEY;
+// API_KEY is set via Vite's 'define' in vite.config.ts, so it should be a string literal here.
+// If VITE_API_KEY is not set in .env or Vercel, it will be 'undefined'.
+const API_KEY_FROM_ENV = process.env.API_KEY as string | undefined;
 
-if (!API_KEY) {
-  // This error will likely be caught by the UI component for a friendlier message.
-  // But for direct service usage, it's good to have.
-  throw new Error(
-    "API_KEY (باید در .env به صورت VITE_API_KEY تعریف شود) در متغیرهای محیطی در دسترس نیست. لطفاً فایل .env خود را بررسی و سرور را ریستارت کنید."
-  );
+// We'll defer the initialization of GoogleGenAI until getGenAIInstance is called,
+// or at least handle the absence of API_KEY more gracefully at the point of use.
+// This prevents a module-level error if API_KEY_FROM_ENV is undefined.
+
+let aiInstance: GoogleGenAI | null = null;
+
+function getGenAIInstance(): GoogleGenAI {
+  if (!API_KEY_FROM_ENV || API_KEY_FROM_ENV === 'undefined') {
+    throw new Error(
+      "API_KEY (VITE_API_KEY in .env or Vercel environment variables) is not configured or is invalid. Please set it in your environment variables."
+    );
+  }
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey: API_KEY_FROM_ENV });
+  }
+  return aiInstance;
 }
-
-// Initialize GoogleGenAI client once as the API_KEY is static at build time.
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 export async function generateTopicSuggestions(
   keywords: string,
@@ -27,6 +35,7 @@ export async function generateTopicSuggestions(
     .replace('{keywords}', keywords);
 
   try {
+    const ai = getGenAIInstance(); // Get or initialize the instance here
     const response = await ai.models.generateContent({
       model: "gemini-2.5-pro", // Selected for Complex Text Tasks as per guidelines
       contents: [{ parts: [{ text: userPromptContent }] }],
@@ -51,9 +60,9 @@ export async function generateTopicSuggestions(
     }
 
     // Specific error message for API key issues
-    if (errorMessage.includes('API key not valid') || errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('Invalid API key')) {
+    if (errorMessage.includes('API key not valid') || errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('Invalid API key') || errorMessage.includes('API key is not specified')) {
       throw new Error(
-        `خطا در ارتباط با هوش مصنوعی: کلید API معتبر نیست یا تعریف نشده است. لطفاً API_KEY خود را در فایل .env بررسی کنید و مطمئن شوید که یک کلید API فعال Gemini/Google GenAI است.`
+        `خطا در ارتباط با هوش مصنوعی: کلید API معتبر نیست یا تعریف نشده است. لطفاً API_KEY خود را در فایل .env (در توسعه محلی) و متغیرهای محیطی Vercel (در دیپلوی) بررسی کنید و مطمئن شوید که یک کلید API فعال Gemini/Google GenAI است.`
       );
     }
     throw new Error(`خطا در ارتباط با هوش مصنوعی: ${errorMessage}`);
