@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { generateTopicSuggestions } from '../services/geminiService'; // Import the new Gemini service
+import { generateTopicSuggestions } from '../services/openaiService'; // Import the OpenAI service
 import { FIELD_OF_STUDY_OPTIONS, ACADEMIC_LEVEL_OPTIONS } from '../constants';
 import { AcademicLevel } from '../types';
 import Dropdown from './Dropdown';
