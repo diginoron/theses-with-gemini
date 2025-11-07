@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { generateTopics } from '../services/avalaiService';
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai"; // Import GoogleGenAI and GenerateContentResponse
 import { FIELD_OF_STUDY_OPTIONS, ACADEMIC_LEVEL_OPTIONS, SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE } from '../constants';
 import { AcademicLevel } from '../types';
 import Dropdown from './Dropdown';
@@ -20,6 +20,14 @@ const TopicGenerator: React.FC = () => {
       return;
     }
 
+    // Fix: Initialize GoogleGenAI right before making an API call to ensure it uses the most up-to-date API key.
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      setError('API_KEY در متغیرهای محیطی تعریف نشده است. لطفاً آن را تنظیم کنید.');
+      return;
+    }
+    const ai = new GoogleGenAI({ apiKey });
+
     setLoading(true);
     setError(null);
     setGeneratedTopics('');
@@ -30,8 +38,24 @@ const TopicGenerator: React.FC = () => {
         .replace('{academicLevel}', academicLevel)
         .replace('{keywords}', keywords);
 
-      const response = await generateTopics(SYSTEM_INSTRUCTION, userPrompt);
-      setGeneratedTopics(response);
+      // Fix: Replace custom service call with GoogleGenAI SDK call.
+      // Use 'gemini-2.5-flash' for basic text tasks.
+      // Configure system instruction, temperature, max output tokens, and thinking budget.
+      const response: GenerateContentResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: userPrompt,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.7,
+          // Set both maxOutputTokens and thinkingConfig.thinkingBudget for 'gemini-2.5-flash'
+          // to reserve tokens for the final output.
+          maxOutputTokens: 800,
+          thinkingConfig: { thinkingBudget: 200 }, // Reserve 200 tokens for thinking
+        },
+      });
+
+      // Fix: Access the text output directly from the response object.
+      setGeneratedTopics(response.text);
     } catch (err) {
       console.error(err);
       setError(`خطا در تولید موضوعات: ${err instanceof Error ? err.message : 'خطای ناشناخته'}`);
