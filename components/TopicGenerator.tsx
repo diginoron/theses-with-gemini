@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { FIELD_OF_STUDY_OPTIONS, ACADEMIC_LEVEL_OPTIONS, SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE } from '../constants';
+import { generateTopicSuggestions } from '../services/geminiService'; // Import the new Gemini service
+import { FIELD_OF_STUDY_OPTIONS, ACADEMIC_LEVEL_OPTIONS } from '../constants';
 import { AcademicLevel } from '../types';
 import Dropdown from './Dropdown';
 import RadioButtonGroup from './RadioButtonGroup';
@@ -20,38 +20,26 @@ const TopicGenerator: React.FC = () => {
       return;
     }
 
-    // Fix: Initialize GoogleGenAI without 'base' property as it's not supported,
-    // and adhere to the guideline of always using { apiKey: process.env.API_KEY }.
-    // The avalaiProxyUrl is not directly consumable by the GoogleGenAI constructor via a 'base' property.
+    // Access environment variables via process.env as defined in vite.config.ts
     const apiKey = process.env.API_KEY;
+
     if (!apiKey) {
-      setError('کلید API (API_KEY) در متغیرهای محیطی تعریف نشده است. لطفاً آن را با نام API_KEY در فایل .env خود تنظیم کنید.');
+      setError('کلید API (که باید در .env به صورت VITE_API_KEY تعریف شود) در دسترس نیست. لطفاً فایل .env خود را بررسی و سرور را ریستارت کنید.');
       return;
     }
-    const ai = new GoogleGenAI({ apiKey });
+    // AVALAI_PROXY_URL check is removed as we are now directly using Google Gemini API
 
     setLoading(true);
     setError(null);
     setGeneratedTopics('');
 
     try {
-      const userPrompt = USER_PROMPT_TEMPLATE
-        .replace('{fieldOfStudy}', fieldOfStudy)
-        .replace('{academicLevel}', academicLevel)
-        .replace('{keywords}', keywords);
-
-      const response: GenerateContentResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: userPrompt,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-          maxOutputTokens: 800,
-          thinkingConfig: { thinkingBudget: 200 },
-        },
-      });
-
-      setGeneratedTopics(response.text);
+      const responseText = await generateTopicSuggestions(
+        keywords,
+        fieldOfStudy,
+        academicLevel
+      );
+      setGeneratedTopics(responseText);
     } catch (err) {
       console.error(err);
       setError(`خطا در تولید موضوعات: ${err instanceof Error ? err.message : 'خطای ناشناخته'}`);
