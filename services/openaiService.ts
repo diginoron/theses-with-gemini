@@ -18,6 +18,9 @@ function getOpenAIClient(): OpenAI {
     openaiClient = new OpenAI({
       apiKey: API_KEY_FROM_ENV,
       baseURL: "https://api.avalai.ir/v1", // Hardcoded as per user's snippet
+      dangerouslyAllowBrowser: true, // IMPORTANT: Allows the SDK to run in a browser environment.
+                                     // This is safe here because we are using an API_KEY that refers to the AvalAI proxy,
+                                     // which itself handles authentication with OpenAI, rather than a direct OpenAI API key.
     });
   }
   return openaiClient;
