@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { FIELD_OF_STUDY_OPTIONS, ACADEMIC_LEVEL_OPTIONS, SYSTEM_INSTRUCTION, USER_PROMPT_TEMPLATE } from '../constants';
@@ -21,8 +20,10 @@ const TopicGenerator: React.FC = () => {
       return;
     }
 
-    // Fix: Adhering to @google/genai coding guidelines, API key must be obtained exclusively from process.env.API_KEY.
-    const apiKey = process.env.API_KEY; 
+    // Fix: Initialize GoogleGenAI without 'base' property as it's not supported,
+    // and adhere to the guideline of always using { apiKey: process.env.API_KEY }.
+    // The avalaiProxyUrl is not directly consumable by the GoogleGenAI constructor via a 'base' property.
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
       setError('کلید API (API_KEY) در متغیرهای محیطی تعریف نشده است. لطفاً آن را با نام API_KEY در فایل .env خود تنظیم کنید.');
       return;

@@ -9,9 +9,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     // `define` tells Vite to globally replace these values during the build.
-    // This ensures that `process.env.API_KEY` is accessible in the client-side bundle.
+    // This ensures that `process.env.API_KEY` and `process.env.AVALAI_PROXY_URL` are accessible in the client-side bundle.
     define: {
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      'process.env.AVALAI_PROXY_URL': JSON.stringify(env.AVALAI_PROXY_URL),
       // You can define other process.env variables needed by your application here.
       // Example: 'process.env.NODE_ENV': JSON.stringify(mode),
     },
