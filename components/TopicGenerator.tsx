@@ -21,9 +21,10 @@ const TopicGenerator: React.FC = () => {
     }
 
     // Fix: Initialize GoogleGenAI right before making an API call to ensure it uses the most up-to-date API key.
+    // As per coding guidelines, use process.env.API_KEY.
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
-      setError('API_KEY در متغیرهای محیطی تعریف نشده است. لطفاً آن را تنظیم کنید.');
+      setError('API_KEY در متغیرهای محیطی تعریف نشده است. لطفاً آن را با نام API_KEY در فایل .env یا تنظیمات محیطی سرور خود تنظیم کنید.');
       return;
     }
     const ai = new GoogleGenAI({ apiKey });
